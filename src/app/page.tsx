@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brush, Zap, LineChart, MessageCircle, Mic, Bot } from 'lucide-react';
 import { KalaConnectIcon } from '@/components/icons';
+import { HomeHeaderActions } from '@/components/home-header-actions';
 
 export default function Home() {
   return (
@@ -25,14 +26,7 @@ export default function Home() {
               Explore
             </Link>
           </nav>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">Sign Up</Link>
-            </Button>
-          </div>
+          <HomeHeaderActions />
         </div>
       </header>
 
