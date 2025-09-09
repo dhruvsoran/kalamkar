@@ -1,3 +1,4 @@
+
 import Image from "next/image"
 import Link from "next/link"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
@@ -28,47 +29,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getProducts } from "@/lib/db"
 
-const products = [
-    {
-        name: "Hand-painted Madhubani Saree",
-        status: "Active",
-        price: "₹8,999",
-        stock: 25,
-        date: "2023-07-12 10:42 AM",
-        image: "https://picsum.photos/100/100?random=1",
-        aiHint: "painted saree"
-    },
-    {
-        name: "Terracotta Horse Statue",
-        status: "Active",
-        price: "₹3,499",
-        stock: 8,
-        date: "2023-10-18 03:21 PM",
-        image: "https://picsum.photos/100/100?random=2",
-        aiHint: "terracotta statue"
-    },
-    {
-        name: "Warli Art Coasters (Set of 4)",
-        status: "Draft",
-        price: "₹999",
-        stock: 100,
-        date: "2024-01-05 09:12 AM",
-        image: "https://picsum.photos/100/100?random=3",
-        aiHint: "art coasters"
-    },
-    {
-        name: "Pashmina Shawl with Sozni Embroidery",
-        status: "Archived",
-        price: "₹15,000",
-        stock: 0,
-        date: "2022-11-29 01:55 PM",
-        image: "https://picsum.photos/100/100?random=4",
-        aiHint: "pashmina shawl"
-    },
-];
+export default async function ProductsPage() {
+  const products = await getProducts();
 
-export default function ProductsPage() {
   return (
     <>
       <div className="flex items-center">
@@ -132,7 +97,7 @@ export default function ProductsPage() {
                           alt="Product image"
                           className="aspect-square rounded-md object-cover"
                           height="64"
-                          src={product.image}
+                          src={product.image || "https://placehold.co/64x64/e5e5e5/a3a3a3/png?text=No+Image"}
                           width="64"
                           data-ai-hint={product.aiHint}
                         />
@@ -145,7 +110,7 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell className="hidden md:table-cell">{product.price}</TableCell>
                       <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
-                      <TableCell className="hidden md:table-cell">{product.date}</TableCell>
+                      <TableCell className="hidden md:table-cell">{new Date(product.date).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -172,7 +137,7 @@ export default function ProductsPage() {
             </CardContent>
             <CardFooter>
               <div className="text-xs text-muted-foreground">
-                Showing <strong>1-4</strong> of <strong>4</strong> products
+                Showing <strong>1-{products.length}</strong> of <strong>{products.length}</strong> products
               </div>
             </CardFooter>
           </Card>

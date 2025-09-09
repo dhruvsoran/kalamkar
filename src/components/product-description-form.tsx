@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,6 +7,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload, Loader2, Sparkles, Save } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { generateProductDescriptionAction } from "@/lib/actions";
+import { generateProductDescriptionAction, saveProductAction } from "@/lib/actions";
 
 const formSchema = z.object({
     productName: z.string().min(3, "Product name must be at least 3 characters."),
@@ -23,16 +26,19 @@ const formSchema = z.object({
     productDimensions: z.string().min(2, "Dimensions are required."),
     productRegion: z.string().min(2, "Region is required."),
     productImage: z.any().refine(file => file instanceof File, "Product image is required."),
+    price: z.string().min(1, "Price is required."),
+    stock: z.coerce.number().min(0, "Stock cannot be negative."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export function ProductDescriptionForm() {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [generatedDescription, setGeneratedDescription] = useState("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const { toast } = useToast();
+    const router = useRouter();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -43,6 +49,8 @@ export function ProductDescriptionForm() {
             productMaterials: "",
             productDimensions: "",
             productRegion: "",
+            price: "",
+            stock: 0,
         },
     });
 
@@ -59,7 +67,7 @@ export function ProductDescriptionForm() {
     };
     
     async function onGenerate(data: FormValues) {
-        setIsLoading(true);
+        setIsGenerating(true);
         setGeneratedDescription("");
 
         if (!imagePreview) {
@@ -68,7 +76,7 @@ export function ProductDescriptionForm() {
                 title: "Image Error",
                 description: "Please upload an image before generating a description.",
             });
-            setIsLoading(false);
+            setIsGenerating(false);
             return;
         }
 
@@ -77,7 +85,8 @@ export function ProductDescriptionForm() {
             if (result.error) {
                 throw new Error(result.error);
             }
-            setGeneratedDescription(result.productDescription ?? "");
+            const description = result.productDescription ?? "";
+            setGeneratedDescription(description);
             toast({
                 title: "Success!",
                 description: "Your new product description is ready.",
@@ -89,12 +98,24 @@ export function ProductDescriptionForm() {
                 description: "Could not generate product description. Please try again.",
             });
         } finally {
-            setIsLoading(false);
+            setIsGenerating(false);
         }
     }
     
     const handleSaveProduct = async () => {
+        // Trigger validation
+        const isValid = await form.trigger();
+        if (!isValid) {
+            toast({
+                variant: "destructive",
+                title: "Missing Fields",
+                description: "Please fill out all required fields before saving.",
+            });
+            return;
+        }
+        
         const data = form.getValues();
+
         if(!generatedDescription) {
              toast({
                 variant: "destructive",
@@ -103,28 +124,54 @@ export function ProductDescriptionForm() {
             });
             return;
         }
+
+        if (!imagePreview) {
+            toast({
+                variant: "destructive",
+                title: "Image Missing",
+                description: "Please upload an image for the product.",
+            });
+            return;
+        }
         
         setIsSaving(true);
-        // This is where you would typically send the data to your backend/database
-        console.log("Saving product:", { ...data, description: generatedDescription });
         
-        // Simulate an API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            const result = await saveProductAction({
+                name: data.productName,
+                description: generatedDescription,
+                price: data.price,
+                stock: data.stock,
+                image: imagePreview,
+                aiHint: `${data.productMaterials} ${data.craftTechniques}`.toLowerCase()
+            });
 
-        toast({
-            title: "Product Saved!",
-            description: `"${data.productName}" has been added to your inventory.`,
-        });
-        setIsSaving(false);
-        // Optionally, reset the form or redirect the user
-        // form.reset();
-        // setGeneratedDescription("");
-        // setImagePreview(null);
+            if (result.error) {
+                throw new Error(result.error);
+            }
+
+            toast({
+                title: "Product Saved!",
+                description: `"${data.productName}" has been added to your inventory.`,
+            });
+            
+            router.push('/dashboard/products');
+
+        } catch(error) {
+             toast({
+                variant: "destructive",
+                title: "Save Failed",
+                description: "An unexpected error occurred while saving.",
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
 
     return (
         <Form {...form}>
+            {/* The onSubmit for the form is for the "Generate" button */}
             <form onSubmit={form.handleSubmit(onGenerate)} className="grid gap-4 md:grid-cols-2 lg:gap-8">
                 <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                     <Card>
@@ -170,6 +217,22 @@ export function ProductDescriptionForm() {
                                     </FormItem>
                                 )} />
                             </div>
+                             <div className="grid grid-cols-2 gap-4">
+                                <FormField control={form.control} name="price" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Price (INR)</FormLabel>
+                                        <FormControl><Input placeholder="e.g., ₹2999" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <FormField control={form.control} name="stock" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Stock</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </div>
                             <FormField control={form.control} name="productRegion" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Region of Origin</FormLabel>
@@ -187,7 +250,7 @@ export function ProductDescriptionForm() {
                             <CardDescription>A good picture is worth a thousand words. And a great AI description.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <FormField control={form.control} name="productImage" render={({ field }) => (
+                            <FormField control={form.control} name="productImage" render={() => (
                                 <FormItem>
                                 <FormControl>
                                     <div className="grid gap-2">
@@ -233,8 +296,8 @@ export function ProductDescriptionForm() {
                         </CardContent>
                     </Card>
                     <div className="flex items-center justify-end gap-2">
-                        <Button type="submit" size="lg" disabled={isLoading || isSaving} className="w-full sm:w-auto">
-                            {isLoading ? (
+                        <Button type="submit" size="lg" disabled={isGenerating || isSaving} className="w-full sm:w-auto">
+                            {isGenerating ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Generating...
@@ -246,7 +309,7 @@ export function ProductDescriptionForm() {
                                 </>
                             )}
                         </Button>
-                         <Button variant="default" size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700" onClick={handleSaveProduct} disabled={isSaving || isLoading}>
+                         <Button variant="default" type="button" size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700" onClick={handleSaveProduct} disabled={isSaving || isGenerating}>
                             {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : <><Save className="mr-2 h-4 w-4" />Save Product</>}
                         </Button>
                     </div>
