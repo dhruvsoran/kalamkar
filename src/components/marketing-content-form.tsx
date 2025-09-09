@@ -128,7 +128,20 @@ export function MarketingContentForm() {
             setVoiceState({ isListening: false, transcript: "", targetField: null });
         };
         
-        recognition.onerror = (event) => {
+        recognition.onerror = (event: any) => {
+            if (event.error === 'network') {
+                toast({
+                    variant: "destructive",
+                    title: "Voice Recognition Error",
+                    description: "Network issue. Please check your internet connection or browser permissions."
+                });
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Voice Recognition Error",
+                    description: `An unexpected error occurred: ${event.error}`
+                });
+            }
             console.error("Speech recognition error", event.error);
             setVoiceState({ isListening: false, transcript: "", targetField: null });
         };
