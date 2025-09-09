@@ -273,7 +273,7 @@ export function ProductDescriptionForm() {
                             <FormField control={form.control} name="productName" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Product Name</FormLabel>
-                                    <FormControl><div className="relative"><Input placeholder="e.g., Hand-Painted Madhubani Saree" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productName")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                    <FormControl><div className="relative"><Input placeholder="e.g., Hand-Painted Madhubani Saree" {...field} />{renderMicButton("productName")}</div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
@@ -334,7 +334,7 @@ export function ProductDescriptionForm() {
                                 <FormField control={form.control} name="stock" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Stock</FormLabel>
-                                        <FormControl><div className="relative"><Input type="number" {...field} />{renderMicButton("stock")}</div></FormControl>
+                                        <FormControl><div className="relative"><Input type="number" {...field} /></div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
