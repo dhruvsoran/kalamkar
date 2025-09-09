@@ -29,7 +29,7 @@ export default function LoginPage() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader>
           <div className="flex justify-center mb-4">
-             <Link href="/" className="flex items-center gap-2 font-bold text-2xl font-headline">
+             <Link href="/" className="flex items-center gap-2 font-bold text-2xl font-headline transition-colors active:text-accent active:animate-pop">
               <KalaConnectIcon className="h-8 w-8 text-primary" />
               KalaConnect
             </Link>

@@ -71,7 +71,7 @@ export default function CartPage() {
          <div className="flex flex-col min-h-screen bg-background">
              <header className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    <Link href="/" className="flex items-center gap-2 font-bold text-2xl font-headline">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-2xl font-headline transition-colors active:text-accent active:animate-pop">
                         <KalaConnectIcon className="h-8 w-8 text-primary" />
                         KalaConnect
                     </Link>
