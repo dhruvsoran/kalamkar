@@ -46,8 +46,8 @@ export default function Home() {
               <Button size="lg" asChild className="w-full sm:w-auto">
                 <Link href="/register?role=artisan">Start Selling</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
-                <Link href="/register?role=buyer">Start Buying</Link>
+              <Button size="lg" variant="outline" asChild className="w-full sm-w-auto">
+                <Link href="/explore">Start Buying</Link>
               </Button>
             </div>
           </div>

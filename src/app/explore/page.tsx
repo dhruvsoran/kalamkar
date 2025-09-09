@@ -1,14 +1,27 @@
 
+"use client";
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { KalaConnectIcon } from '@/components/icons';
 import { getProducts, Product } from '@/lib/db';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { HomeHeaderActions } from '@/components/home-header-actions';
 
-export default async function ExplorePage() {
-    const products = await getProducts();
-    const activeProducts = products.filter(p => p.status === 'Active');
+export default function ExplorePage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    
+    useEffect(() => {
+        async function fetchProducts() {
+            const allProducts = await getProducts();
+            setProducts(allProducts.filter(p => p.status === 'Active'));
+        }
+        fetchProducts();
+    }, []);
+    
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -18,9 +31,7 @@ export default async function ExplorePage() {
                     <KalaConnectIcon className="h-8 w-8 text-primary" />
                     KalaConnect
                 </Link>
-                <Button asChild>
-                    <Link href="/register">Join as an Artisan</Link>
-                </Button>
+                <HomeHeaderActions />
                 </div>
             </header>
             <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -30,9 +41,9 @@ export default async function ExplorePage() {
                         Discover unique, handcrafted items directly from Indian artisans.
                     </p>
                 </div>
-                {activeProducts.length > 0 ? (
+                {products.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {activeProducts.map((product) => (
+                        {products.map((product) => (
                            <ProductCard key={product.name} product={product} />
                         ))}
                     </div>
@@ -58,6 +69,34 @@ export default async function ExplorePage() {
 
 
 function ProductCard({ product }: { product: Product }) {
+    const { toast } = useToast();
+
+    const handleAddToCart = () => {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const isProductInCart = cart.some((item: Product) => item.name === product.name);
+
+        if (isProductInCart) {
+             toast({
+                variant: "destructive",
+                title: "Already in Cart",
+                description: `${product.name} is already in your shopping cart.`,
+            });
+            return;
+        }
+
+        const newCart = [...cart, product];
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        toast({
+            title: "Added to Cart!",
+            description: `Successfully added ${product.name} to your cart.`,
+            action: (
+                <Button variant="outline" size="sm" asChild>
+                    <Link href="/cart">View Cart</Link>
+                </Button>
+            ),
+        });
+    };
+
     return (
         <Card className="overflow-hidden flex flex-col animate-fade-in">
             <CardHeader className="p-0">
@@ -76,7 +115,7 @@ function ProductCard({ product }: { product: Product }) {
             </CardContent>
             <CardFooter className="p-4 pt-0 flex justify-between items-center">
                  <p className="font-semibold text-lg">{product.price}</p>
-                <Button size="sm">Add to Cart</Button>
+                <Button size="sm" onClick={handleAddToCart}>Add to Cart</Button>
             </CardFooter>
         </Card>
     )
