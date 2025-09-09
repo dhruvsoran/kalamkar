@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -33,12 +34,12 @@ export default function Home() {
       <main className="flex-grow">
         <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight animate-fade-in-down">
               Empowering Artisans,
               <br />
               <span className="text-primary">Celebrating Heritage</span>
             </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
+            <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground animate-fade-in-up">
               KalaConnect is an AI-powered marketplace that helps Indian artisans and craftsmen thrive in the digital world.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
@@ -131,7 +132,7 @@ export default function Home() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
-    <Card className="text-center bg-background border-none shadow-none">
+    <Card className="text-center bg-background border-none shadow-none animate-fade-in">
       <CardHeader className="items-center">
         <div className="bg-card p-4 rounded-full">
           {icon}

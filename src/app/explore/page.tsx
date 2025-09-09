@@ -59,7 +59,7 @@ export default async function ExplorePage() {
 
 function ProductCard({ product }: { product: Product }) {
     return (
-        <Card className="overflow-hidden flex flex-col">
+        <Card className="overflow-hidden flex flex-col animate-fade-in">
             <CardHeader className="p-0">
                 <Image
                     src={product.image}

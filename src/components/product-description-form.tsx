@@ -37,7 +37,7 @@ type FormValues = z.infer<typeof formSchema>;
 type VoiceInputState = {
     isListening: boolean;
     transcript: string;
-    targetField: keyof FormValues | null;
+    targetField: keyof FormValues | "price";
 };
 
 export function ProductDescriptionForm() {
@@ -196,7 +196,7 @@ export function ProductDescriptionForm() {
         }
     };
 
-    const handleVoiceInput = (fieldName: keyof FormValues) => {
+    const handleVoiceInput = (fieldName: keyof FormValues | "price") => {
         if (!('webkitSpeechRecognition' in window)) {
             toast({ variant: "destructive", title: "Browser not supported", description: "Your browser does not support voice input." });
             return;
@@ -247,9 +247,13 @@ export function ProductDescriptionForm() {
                 }
             }
             if (finalTranscript) {
-                const currentVal = form.getValues(fieldName) as string;
-                const newVal = (currentVal ? currentVal + " " : "") + finalTranscript;
-                form.setValue(fieldName, newVal.trim() as any);
+                if(fieldName === "price") {
+                    handlePriceChange(finalTranscript);
+                } else {
+                    const currentVal = form.getValues(fieldName) as string;
+                    const newVal = (currentVal ? currentVal + " " : "") + finalTranscript;
+                    form.setValue(fieldName, newVal.trim() as any);
+                }
             }
         };
 
@@ -258,7 +262,7 @@ export function ProductDescriptionForm() {
     };
 
 
-    const renderMicButton = (fieldName: keyof FormValues) => {
+    const renderMicButton = (fieldName: keyof FormValues | "price") => {
         const isListeningToField = voiceState.isListening && voiceState.targetField === fieldName;
         return (
             <Button
@@ -338,6 +342,7 @@ export function ProductDescriptionForm() {
                                             <FormControl>
                                                 <div className="relative flex-1">
                                                     <Input type="number" placeholder="e.g., 2999" value={amount} onChange={(e) => handlePriceChange(e.target.value)} />
+                                                    {renderMicButton("price")}
                                                 </div>
                                             </FormControl>
                                         </div>
@@ -347,7 +352,7 @@ export function ProductDescriptionForm() {
                                 <FormField control={form.control} name="stock" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Stock</FormLabel>
-                                        <FormControl><div className="relative"><Input type="number" {...field} /></div></FormControl>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
