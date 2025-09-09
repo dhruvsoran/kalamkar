@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -11,13 +12,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect, useState } from 'react';
 
 export function UserMenu() {
     const router = useRouter();
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const role = localStorage.getItem('userRole');
+            setUserRole(role);
+        }
+    }, []);
 
     const handleLogout = () => {
         if (typeof window !== 'undefined') {
             localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userRole');
         }
         router.push('/');
     };
@@ -33,8 +44,13 @@ export function UserMenu() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => router.push('/dashboard/profile')} 
+                disabled={userRole !== 'artisan'}
+              >
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
