@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Upload, Loader2, Sparkles, Save, Mic } from "lucide-react";
+import { Upload, Loader2, Sparkles, Save, Mic, Waves } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 
@@ -15,8 +15,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { generateProductDescriptionAction, saveProductAction } from "@/lib/actions";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
     productName: z.string().min(3, "Product name must be at least 3 characters."),
@@ -32,13 +34,29 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+type VoiceInputState = {
+    isListening: boolean;
+    transcript: string;
+    targetField: keyof FormValues | null;
+};
+
 export function ProductDescriptionForm() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [generatedDescription, setGeneratedDescription] = useState("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [currency, setCurrency] = useState("₹");
+    const [amount, setAmount] = useState("");
     const { toast } = useToast();
     const router = useRouter();
+
+    const [voiceState, setVoiceState] = useState<VoiceInputState>({
+        isListening: false,
+        transcript: "",
+        targetField: null,
+    });
+    const recognitionRef = useRef<any>(null);
+
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -53,6 +71,17 @@ export function ProductDescriptionForm() {
             stock: 0,
         },
     });
+    
+    const handlePriceChange = (newAmount: string) => {
+        setAmount(newAmount);
+        form.setValue("price", `${currency}${newAmount}`);
+    };
+
+    const handleCurrencyChange = (newCurrency: string) => {
+        setCurrency(newCurrency);
+        form.setValue("price", `${newCurrency}${amount}`);
+    };
+
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -103,7 +132,6 @@ export function ProductDescriptionForm() {
     }
     
     const handleSaveProduct = async () => {
-        // Trigger validation
         const isValid = await form.trigger();
         if (!isValid) {
             toast({
@@ -169,12 +197,71 @@ export function ProductDescriptionForm() {
     };
 
     const handleVoiceInput = (fieldName: keyof FormValues) => {
-        alert(`Voice input for ${fieldName} is not yet implemented.`);
+        if (!('webkitSpeechRecognition' in window)) {
+            toast({ variant: "destructive", title: "Browser not supported", description: "Your browser does not support voice input." });
+            return;
+        }
+
+        if (voiceState.isListening) {
+            recognitionRef.current?.stop();
+            setVoiceState({ isListening: false, transcript: "", targetField: null });
+            return;
+        }
+
+        const recognition = new window.webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US'; // This can be changed for different languages
+
+        recognition.onstart = () => {
+            setVoiceState({ isListening: true, transcript: "", targetField: fieldName });
+        };
+
+        recognition.onend = () => {
+            setVoiceState({ isListening: false, transcript: "", targetField: null });
+        };
+        
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            setVoiceState({ isListening: false, transcript: "", targetField: null });
+        };
+
+        recognition.onresult = (event) => {
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                }
+            }
+            if (finalTranscript) {
+                const currentVal = form.getValues(fieldName) as string;
+                const newVal = (currentVal ? currentVal + " " : "") + finalTranscript;
+                form.setValue(fieldName, newVal.trim());
+            }
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+    };
+
+
+    const renderMicButton = (fieldName: keyof FormValues) => {
+        const isListeningToField = voiceState.isListening && voiceState.targetField === fieldName;
+        return (
+            <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className={cn("absolute right-1 top-1 h-8 w-8", isListeningToField && "text-destructive")}
+                onClick={() => handleVoiceInput(fieldName)}
+            >
+                {isListeningToField ? <Waves className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+        );
     };
 
     return (
         <Form {...form}>
-            {/* The onSubmit for the form is for the "Generate" button */}
             <form onSubmit={form.handleSubmit(onGenerate)} className="grid gap-4 md:grid-cols-2 lg:gap-8">
                 <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                     <Card>
@@ -193,14 +280,14 @@ export function ProductDescriptionForm() {
                              <FormField control={form.control} name="artisanCulture" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Cultural Heritage</FormLabel>
-                                    <FormControl><div className="relative"><Input placeholder="e.g., Mithila region of Bihar" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("artisanCulture")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                    <FormControl><div className="relative"><Input placeholder="e.g., Mithila region of Bihar" {...field} />{renderMicButton("artisanCulture")}</div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="craftTechniques" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Craft Techniques</FormLabel>
-                                    <FormControl><div className="relative"><Textarea placeholder="e.g., Natural dyes, intricate line work..." {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("craftTechniques")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                    <FormControl><div className="relative"><Textarea placeholder="e.g., Natural dyes, intricate line work..." {...field} />{renderMicButton("craftTechniques")}</div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
@@ -208,30 +295,46 @@ export function ProductDescriptionForm() {
                                 <FormField control={form.control} name="productMaterials" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Materials</FormLabel>
-                                        <FormControl><div className="relative"><Input placeholder="e.g., Tussar Silk" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productMaterials")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                        <FormControl><div className="relative"><Input placeholder="e.g., Tussar Silk" {...field} />{renderMicButton("productMaterials")}</div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="productDimensions" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Dimensions</FormLabel>
-                                        <FormControl><div className="relative"><Input placeholder="e.g., 5.5m x 1.2m" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productDimensions")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                        <FormControl><div className="relative"><Input placeholder="e.g., 5.5m x 1.2m" {...field} />{renderMicButton("productDimensions")}</div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                             </div>
                              <div className="grid grid-cols-2 gap-4">
-                                <FormField control={form.control} name="price" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Price (INR)</FormLabel>
-                                        <FormControl><div className="relative"><Input placeholder="e.g., ₹2999" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("price")}><Mic className="h-4 w-4" /></Button></div></FormControl>
-                                        <FormMessage />
+                                <FormField control={form.control} name="price" render={() => (
+                                     <FormItem>
+                                        <FormLabel>Price</FormLabel>
+                                        <div className="flex gap-2">
+                                            <Select value={currency} onValueChange={handleCurrencyChange}>
+                                                <SelectTrigger className="w-[80px]">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="₹">INR</SelectItem>
+                                                    <SelectItem value="$">USD</SelectItem>
+                                                    <SelectItem value="€">EUR</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormControl>
+                                                <div className="relative flex-1">
+                                                    <Input type="number" placeholder="e.g., 2999" value={amount} onChange={(e) => handlePriceChange(e.target.value)} />
+                                                </div>
+                                            </FormControl>
+                                        </div>
+                                        <FormMessage>{form.formState.errors.price?.message}</FormMessage>
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="stock" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Stock</FormLabel>
-                                        <FormControl><div className="relative"><Input type="number" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("stock")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                        <FormControl><div className="relative"><Input type="number" {...field} />{renderMicButton("stock")}</div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
@@ -239,7 +342,7 @@ export function ProductDescriptionForm() {
                             <FormField control={form.control} name="productRegion" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Region of Origin</FormLabel>
-                                    <FormControl><div className="relative"><Input placeholder="e.g., Bihar, India" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productRegion")}><Mic className="h-4 w-4" /></Button></div></FormControl>
+                                    <FormControl><div className="relative"><Input placeholder="e.g., Bihar, India" {...field} />{renderMicButton("productRegion")}</div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
@@ -289,13 +392,15 @@ export function ProductDescriptionForm() {
                             <CardDescription>Your AI-crafted product story. You can edit it before saving.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Textarea
-                                placeholder="Your generated description will appear here..."
-                                value={generatedDescription}
-                                onChange={(e) => setGeneratedDescription(e.target.value)}
-                                rows={10}
-                                className="min-h-[200px]"
-                            />
+                            <div className="relative">
+                                <Textarea
+                                    placeholder="Your generated description will appear here..."
+                                    value={generatedDescription}
+                                    onChange={(e) => setGeneratedDescription(e.target.value)}
+                                    rows={10}
+                                    className="min-h-[200px]"
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                     <div className="flex items-center justify-end gap-2">
