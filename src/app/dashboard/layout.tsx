@@ -1,24 +1,17 @@
+
+"use client";
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Package,
-  Users,
   Bot,
   BarChart,
   Brush,
   User,
-  Settings,
-  LogOut,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { KalaConnectIcon } from '@/components/icons';
 import { UserMenu } from '@/components/user-menu';
 
@@ -27,6 +20,16 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const role = localStorage.getItem('userRole');
+            setUserRole(role);
+        }
+    }, []);
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-card md:block">
@@ -39,24 +42,37 @@ export default function DashboardLayout({
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              <NavItem icon={<LayoutDashboard className="h-4 w-4" />} href="/dashboard">
-                Dashboard
-              </NavItem>
-              <NavItem icon={<Package className="h-4 w-4" />} href="/dashboard/products">
-                Products
-              </NavItem>
-              <NavItem icon={<Brush className="h-4 w-4" />} href="/dashboard/marketing">
-                Marketing
-              </NavItem>
-              <NavItem icon={<BarChart className="h-4 w-4" />} href="/dashboard/analytics">
-                Analytics
-              </NavItem>
-              <NavItem icon={<Bot className="h-4 w-4" />} href="/dashboard/chatbot">
-                Chatbot
-              </NavItem>
-              <NavItem icon={<User className="h-4 w-4" />} href="/dashboard/profile">
-                Profile
-              </NavItem>
+              {userRole === 'artisan' ? (
+                <>
+                    <NavItem icon={<LayoutDashboard className="h-4 w-4" />} href="/dashboard">
+                        Dashboard
+                    </NavItem>
+                    <NavItem icon={<Package className="h-4 w-4" />} href="/dashboard/products">
+                        Products
+                    </NavItem>
+                    <NavItem icon={<Brush className="h-4 w-4" />} href="/dashboard/marketing">
+                        Marketing
+                    </NavItem>
+                    <NavItem icon={<BarChart className="h-4 w-4" />} href="/dashboard/analytics">
+                        Analytics
+                    </NavItem>
+                    <NavItem icon={<Bot className="h-4 w-4" />} href="/dashboard/chatbot">
+                        Chatbot
+                    </NavItem>
+                    <NavItem icon={<User className="h-4 w-4" />} href="/dashboard/profile">
+                        Profile
+                    </NavItem>
+                </>
+              ) : (
+                 <>
+                    <NavItem icon={<LayoutDashboard className="h-4 w-4" />} href="/dashboard">
+                        Buyer Dashboard
+                    </NavItem>
+                     <NavItem icon={<Package className="h-4 w-4" />} href="/explore">
+                        Explore Products
+                    </NavItem>
+                 </>
+              )}
             </nav>
           </div>
         </div>
@@ -76,9 +92,8 @@ export default function DashboardLayout({
 }
 
 function NavItem({ href, icon, children }: { href: string, icon: React.ReactNode, children: React.ReactNode }) {
-    // This would ideally use usePathname to determine active state
-    // For this scaffold, we'll keep it simple
-    const isActive = false;
+    const pathname = usePathname();
+    const isActive = pathname === href;
     
     return (
         <Link

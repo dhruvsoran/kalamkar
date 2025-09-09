@@ -1,18 +1,17 @@
+
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Activity,
   ArrowUpRight,
-  CircleUser,
   CreditCard,
   DollarSign,
-  Menu,
-  Package2,
-  Search,
   Users,
 } from 'lucide-react';
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -29,8 +28,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { getProducts, Product } from '@/lib/db';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default function Dashboard() {
+
+function ArtisanDashboard() {
   return (
     <>
       <div className="flex items-center">
@@ -197,4 +200,93 @@ export default function Dashboard() {
       </div>
     </>
   );
+}
+
+function BuyerDashboard() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const allProducts = await getProducts();
+      setProducts(allProducts.filter(p => p.status === 'Active'));
+      setLoading(false);
+    }
+    fetchProducts();
+  }, []);
+
+  return (
+    <>
+      <div className="flex items-center">
+        <h1 className="text-lg font-semibold md:text-2xl font-headline">Welcome Back!</h1>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>AI-Powered Recommendations</CardTitle>
+          <CardDescription>Based on your interests, you might like these unique items.</CardDescription>
+        </CardHeader>
+        <CardContent>
+           {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <Skeleton className="h-80 w-full" />
+                <Skeleton className="h-80 w-full" />
+                <Skeleton className="h-80 w-full" />
+                <Skeleton className="h-80 w-full" />
+            </div>
+           ) : products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {products.slice(0, 4).map((product) => (
+                <Card key={product.name} className="overflow-hidden flex flex-col animate-fade-in">
+                  <CardHeader className="p-0">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={400}
+                      height={400}
+                      className="aspect-square object-cover w-full"
+                      data-ai-hint={product.aiHint}
+                    />
+                  </CardHeader>
+                  <CardContent className="p-4 flex-grow">
+                    <h3 className="font-bold text-lg font-headline">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
+                  </CardContent>
+                  <CardContent className="p-4 pt-0 flex justify-between items-center">
+                    <p className="font-semibold text-lg">{product.price}</p>
+                    <Button size="sm">Add to Cart</Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p>No recommended products at this time. <Link href="/explore" className="text-primary underline">Start exploring</Link>!</p>
+          )}
+        </CardContent>
+      </Card>
+      <div className="text-center mt-4">
+        <Button asChild>
+            <Link href="/explore">Explore All Products</Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export default function Dashboard() {
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const role = localStorage.getItem('userRole');
+            setUserRole(role);
+            setIsLoading(false);
+        }
+    }, []);
+
+    if (isLoading) {
+        return <Skeleton className="h-screen w-full" />;
+    }
+    
+    return userRole === 'artisan' ? <ArtisanDashboard /> : <BuyerDashboard />;
 }
