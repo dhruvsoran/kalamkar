@@ -36,8 +36,8 @@ export default function ExplorePage() {
             </header>
             <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                  <div className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold font-headline">Explore Our Marketplace</h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
+                    <h1 className="text-4xl md:text-5xl font-bold font-headline animate-fade-in-down">Explore Our Marketplace</h1>
+                    <p className="mt-4 max-w-2xl mx-auto text-muted-foreground animate-fade-in-up">
                         Discover unique, handcrafted items directly from Indian artisans.
                     </p>
                 </div>
@@ -86,6 +86,8 @@ function ProductCard({ product }: { product: Product }) {
 
         const newCart = [...cart, product];
         localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('cartUpdated'));
+
         toast({
             title: "Added to Cart!",
             description: `Successfully added ${product.name} to your cart.`,

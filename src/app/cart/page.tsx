@@ -12,6 +12,18 @@ import { Trash2, ShoppingCart } from 'lucide-react';
 import { HomeHeaderActions } from '@/components/home-header-actions';
 import { KalaConnectIcon } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 export default function CartPage() {
     const [cart, setCart] = useState<Product[]>([]);
@@ -27,12 +39,21 @@ export default function CartPage() {
 
         const storedCart = JSON.parse(localStorage.getItem('cart') || '[]');
         setCart(storedCart);
+        
+        const handleCartUpdate = () => {
+            const updatedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+            setCart(updatedCart);
+        };
+        window.addEventListener('cartUpdated', handleCartUpdate);
+        return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+
     }, []);
 
     const removeFromCart = (productName: string) => {
         const newCart = cart.filter(item => item.name !== productName);
         setCart(newCart);
         localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('cartUpdated'));
         toast({
             title: "Item removed",
             description: `${productName} has been removed from your cart.`,
@@ -85,9 +106,28 @@ export default function CartPage() {
                                             <TableCell className="font-medium">{item.name}</TableCell>
                                             <TableCell>{item.price}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.name)}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                <AlertDialog>
+                                                  <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                      <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                  </AlertDialogTrigger>
+                                                  <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                      <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently remove
+                                                        "{item.name}" from your cart.
+                                                      </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                      <AlertDialogAction onClick={() => removeFromCart(item.name)}>
+                                                        Remove
+                                                      </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                  </AlertDialogContent>
+                                                </AlertDialog>
                                             </TableCell>
                                         </TableRow>
                                     ))}

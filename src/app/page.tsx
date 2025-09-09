@@ -42,11 +42,11 @@ export default function Home() {
             <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground animate-fade-in-up">
               KalaConnect is an AI-powered marketplace that helps Indian artisans and craftsmen thrive in the digital world.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in-up">
               <Button size="lg" asChild className="w-full sm:w-auto">
                 <Link href="/register?role=artisan">Start Selling</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="w-full sm-w-auto">
+              <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/explore">Start Buying</Link>
               </Button>
             </div>
@@ -104,7 +104,7 @@ export default function Home() {
                 alt="Artisan working"
                 width={600}
                 height={500}
-                className="rounded-lg shadow-xl"
+                className="rounded-lg shadow-xl animate-fade-in"
                 data-ai-hint="artisan hands"
               />
             </div>
@@ -132,7 +132,7 @@ export default function Home() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
-    <Card className="text-center bg-background border-none shadow-none animate-fade-in">
+    <Card className="text-center bg-transparent border-none shadow-none animate-fade-in-up">
       <CardHeader className="items-center">
         <div className="bg-card p-4 rounded-full">
           {icon}
