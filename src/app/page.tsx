@@ -44,10 +44,10 @@ export default function Home() {
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
               <Button size="lg" asChild className="w-full sm:w-auto">
-                <Link href="/register">Join as an Artisan</Link>
+                <Link href="/register?role=artisan">Start Selling</Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
-                <Link href="/explore">Explore Handicrafts</Link>
+                <Link href="/register?role=buyer">Start Buying</Link>
               </Button>
             </div>
           </div>

@@ -2,18 +2,25 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KalaConnectIcon } from "@/components/icons";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
-  const [role, setRole] = useState("buyer");
+  const searchParams = useSearchParams();
+  const initialRole = searchParams.get('role') === 'artisan' ? 'artisan' : 'buyer';
+  const [role, setRole] = useState(initialRole);
+
+  useEffect(() => {
+    setRole(initialRole);
+  }, [initialRole]);
+
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +50,7 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="grid gap-4">
             <div className="grid gap-2">
                 <Label>I want to join as a...</Label>
-                <RadioGroup defaultValue={role} onValueChange={setRole} className="grid grid-cols-2 gap-4">
+                <RadioGroup value={role} onValueChange={setRole} className="grid grid-cols-2 gap-4">
                     <div>
                         <RadioGroupItem value="buyer" id="buyer" className="peer sr-only" />
                         <Label
@@ -96,3 +103,13 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <RegisterForm />
+        </Suspense>
+    );
+}
+
