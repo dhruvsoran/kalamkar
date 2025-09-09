@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Upload, Loader2, Sparkles } from "lucide-react";
+import { Upload, Loader2, Sparkles, Save } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function ProductDescriptionForm() {
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [generatedDescription, setGeneratedDescription] = useState("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const { toast } = useToast();
@@ -57,7 +58,7 @@ export function ProductDescriptionForm() {
         }
     };
     
-    async function onSubmit(data: FormValues) {
+    async function onGenerate(data: FormValues) {
         setIsLoading(true);
         setGeneratedDescription("");
 
@@ -91,10 +92,40 @@ export function ProductDescriptionForm() {
             setIsLoading(false);
         }
     }
+    
+    const handleSaveProduct = async () => {
+        const data = form.getValues();
+        if(!generatedDescription) {
+             toast({
+                variant: "destructive",
+                title: "Cannot Save",
+                description: "Please generate a description before saving.",
+            });
+            return;
+        }
+        
+        setIsSaving(true);
+        // This is where you would typically send the data to your backend/database
+        console.log("Saving product:", { ...data, description: generatedDescription });
+        
+        // Simulate an API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        toast({
+            title: "Product Saved!",
+            description: `"${data.productName}" has been added to your inventory.`,
+        });
+        setIsSaving(false);
+        // Optionally, reset the form or redirect the user
+        // form.reset();
+        // setGeneratedDescription("");
+        // setImagePreview(null);
+    };
+
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 md:grid-cols-2 lg:gap-8">
+            <form onSubmit={form.handleSubmit(onGenerate)} className="grid gap-4 md:grid-cols-2 lg:gap-8">
                 <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                     <Card>
                         <CardHeader>
@@ -165,7 +196,7 @@ export function ProductDescriptionForm() {
                                             alt="Product image"
                                             className="aspect-square w-full rounded-md object-cover border-2 border-dashed"
                                             height="300"
-                                            src={imagePreview || "/placeholder.svg"}
+                                            src={imagePreview || "https://placehold.co/300x300/e5e5e5/a3a3a3/png?text=Upload+Image"}
                                             width="300"
                                             data-ai-hint="placeholder"
                                         />
@@ -202,7 +233,7 @@ export function ProductDescriptionForm() {
                         </CardContent>
                     </Card>
                     <div className="flex items-center justify-end gap-2">
-                        <Button type="submit" size="lg" disabled={isLoading} className="w-full sm:w-auto">
+                        <Button type="submit" size="lg" disabled={isLoading || isSaving} className="w-full sm:w-auto">
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -215,8 +246,8 @@ export function ProductDescriptionForm() {
                                 </>
                             )}
                         </Button>
-                         <Button variant="destructive" size="lg" className="w-full sm:w-auto">
-                            Save Product
+                         <Button variant="default" size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700" onClick={handleSaveProduct} disabled={isSaving || isLoading}>
+                            {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : <><Save className="mr-2 h-4 w-4" />Save Product</>}
                         </Button>
                     </div>
                 </div>
@@ -224,12 +255,3 @@ export function ProductDescriptionForm() {
         </Form>
     );
 }
-
-// A simple placeholder for now.
-const PlaceholderImage = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <rect width="300" height="300" rx="6" fill="#e5e5e5"/>
-        <path d="M100 162.5L137.5 125L187.5 175L212.5 150L250 187.5" stroke="#a3a3a3" strokeWidth="2"/>
-        <circle cx="125" cy="112.5" r="12.5" stroke="#a3a3a3" strokeWidth="2"/>
-    </svg>
-)
