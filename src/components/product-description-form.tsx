@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Upload, Loader2, Sparkles, Save } from "lucide-react";
+import { Upload, Loader2, Sparkles, Save, Mic } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 
@@ -168,6 +168,9 @@ export function ProductDescriptionForm() {
         }
     };
 
+    const handleVoiceInput = (fieldName: keyof FormValues) => {
+        alert(`Voice input for ${fieldName} is not yet implemented.`);
+    };
 
     return (
         <Form {...form}>
@@ -183,21 +186,21 @@ export function ProductDescriptionForm() {
                             <FormField control={form.control} name="productName" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Product Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Hand-Painted Madhubani Saree" {...field} /></FormControl>
+                                    <FormControl><div className="relative"><Input placeholder="e.g., Hand-Painted Madhubani Saree" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productName")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
                              <FormField control={form.control} name="artisanCulture" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Cultural Heritage</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Mithila region of Bihar" {...field} /></FormControl>
+                                    <FormControl><div className="relative"><Input placeholder="e.g., Mithila region of Bihar" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("artisanCulture")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="craftTechniques" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Craft Techniques</FormLabel>
-                                    <FormControl><Textarea placeholder="e.g., Natural dyes, intricate line work..." {...field} /></FormControl>
+                                    <FormControl><div className="relative"><Textarea placeholder="e.g., Natural dyes, intricate line work..." {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("craftTechniques")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
@@ -205,14 +208,14 @@ export function ProductDescriptionForm() {
                                 <FormField control={form.control} name="productMaterials" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Materials</FormLabel>
-                                        <FormControl><Input placeholder="e.g., Tussar Silk" {...field} /></FormControl>
+                                        <FormControl><div className="relative"><Input placeholder="e.g., Tussar Silk" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productMaterials")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="productDimensions" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Dimensions</FormLabel>
-                                        <FormControl><Input placeholder="e.g., 5.5m x 1.2m" {...field} /></FormControl>
+                                        <FormControl><div className="relative"><Input placeholder="e.g., 5.5m x 1.2m" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productDimensions")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
@@ -221,14 +224,14 @@ export function ProductDescriptionForm() {
                                 <FormField control={form.control} name="price" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Price (INR)</FormLabel>
-                                        <FormControl><Input placeholder="e.g., ₹2999" {...field} /></FormControl>
+                                        <FormControl><div className="relative"><Input placeholder="e.g., ₹2999" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("price")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
                                 <FormField control={form.control} name="stock" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Stock</FormLabel>
-                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormControl><div className="relative"><Input type="number" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("stock")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )} />
@@ -236,7 +239,7 @@ export function ProductDescriptionForm() {
                             <FormField control={form.control} name="productRegion" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Region of Origin</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Bihar, India" {...field} /></FormControl>
+                                    <FormControl><div className="relative"><Input placeholder="e.g., Bihar, India" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productRegion")}><Mic className="h-4 w-4" /></Button></div></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />

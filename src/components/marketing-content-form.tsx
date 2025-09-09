@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sparkles, Copy, Send, Mail } from "lucide-react";
+import { Loader2, Sparkles, Copy, Send, Mail, Mic } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,6 +88,10 @@ export function MarketingContentForm() {
         toast({ title: `Copied ${type} to clipboard!` });
     };
 
+    const handleVoiceInput = (fieldName: keyof FormValues) => {
+        alert(`Voice input for ${fieldName} is not yet implemented.`);
+    };
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 md:grid-cols-2 lg:gap-8">
@@ -111,16 +116,16 @@ export function MarketingContentForm() {
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="productDescription" render={({ field }) => (
-                            <FormItem><FormLabel>Product Description</FormLabel><FormControl><Textarea placeholder="Description of the product" {...field} rows={4} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Product Description</FormLabel><FormControl><div className="relative"><Textarea placeholder="Description of the product" {...field} rows={4} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("productDescription")}><Mic className="h-4 w-4" /></Button></div></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="artisanName" render={({ field }) => (
-                            <FormItem><FormLabel>Artisan Name</FormLabel><FormControl><Input placeholder="Your name" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Artisan Name</FormLabel><FormControl><div className="relative"><Input placeholder="Your name" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("artisanName")}><Mic className="h-4 w-4" /></Button></div></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="cultureHeritage" render={({ field }) => (
-                            <FormItem><FormLabel>Cultural Heritage</FormLabel><FormControl><Input placeholder="e.g., Mithila, Bihar" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Cultural Heritage</FormLabel><FormControl><div className="relative"><Input placeholder="e.g., Mithila, Bihar" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("cultureHeritage")}><Mic className="h-4 w-4" /></Button></div></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="targetAudience" render={({ field }) => (
-                            <FormItem><FormLabel>Target Audience</FormLabel><FormControl><Input placeholder="e.g., Art lovers, tourists" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Target Audience</FormLabel><FormControl><div className="relative"><Input placeholder="e.g., Art lovers, tourists" {...field} /><Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 h-8 w-8" onClick={() => handleVoiceInput("targetAudience")}><Mic className="h-4 w-4" /></Button></div></FormControl><FormMessage /></FormItem>
                         )} />
                          <Button type="submit" size="lg" disabled={isLoading}>
                             {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</> : <><Sparkles className="mr-2 h-4 w-4" />Generate Content</>}
